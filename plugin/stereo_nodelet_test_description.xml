@@ -1,0 +1,5 @@
+<library path="libstereo_nodelet_test">
+  <class  name="magicStereo/magic_stereo_nodelet_test" type="magicStereo::magic_stereo_nodelet_test"  base_class_type="nodelet::Nodelet">
+  <description>magic_stereo_nodelet_test</description>
+  </class>
+</library>

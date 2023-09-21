@@ -1,0 +1,35 @@
+!!python/object/new:dynamic_reconfigure.encoding.Config
+dictitems:
+  BlockSize: 5
+  Disp12MaxDiff: 50
+  MinDisparity: 1
+  PreFilterCap: 25
+  SpeckleRange: 45
+  SpeckleWindowSize: 23
+  UniquenessRatio: 73
+  groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+    dictitems:
+      BlockSize: 5
+      Disp12MaxDiff: 50
+      MinDisparity: 1
+      PreFilterCap: 25
+      SpeckleRange: 45
+      SpeckleWindowSize: 23
+      UniquenessRatio: 73
+      groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+        state: []
+      id: 0
+      name: Default
+      p1_num: 22
+      p2_num: 91
+      parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
+        state: []
+      parent: 0
+      sgbm_type: 3
+      state: true
+      type: ''
+    state: []
+  p1_num: 22
+  p2_num: 91
+  sgbm_type: 3
+state: []

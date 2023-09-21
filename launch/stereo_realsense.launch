@@ -1,0 +1,38 @@
+<launch>
+    <!-- Launches ELAS node, and rectification nodes for input --> 
+    <!-- Arguments: input stereo namespace and output elas namespace -->
+
+
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
+
+
+    <!-- <node pkg="sci_ros" type="sci_node.py" name="sci_node">
+        <param name="sub_image_0" value='/infra1/image_rect_raw' />
+        <param name="sub_image_1" value='/infra2/image_rect_raw' />    
+        <param name="pub_image_0" value='/image_enhance_0' />
+        <param name="pub_image_1" value='/image_enhance_1' />
+        <param name="model_path" value="/home/sunteng/catkin_ws/src/sci_ros/ckpt/weights_122.pt"/>
+    </node>
+     -->
+    <node pkg="stereo" type="stereo_node_" name="stereo_node_" >
+        
+        <param name="left_topic"  type="string"  value="/infra1/image_rect_raw" />
+        <param name="right_topic"  type="string"  value="/infra2/image_rect_raw"/>
+
+        <param name="sgbm_type" type="int" value="3" />
+        <param name="p1_num" type="int" value="24" />
+        <param name="p2_num" type="int" value="96" />
+        <param name="Disp12MaxDiff" type="int" value="50"/>
+        <param name="MinDisparity" type="int" value="4"/>
+        <param name="SpeckleWindowSize" type="int" value="23"/>
+        <param name="SpeckleRange" type="int" value="45"/>
+        <param name="PreFilterCap" type="int" value="63"/>
+        <param name="UniquenessRatio" type="int" value="73"/>
+        <param name="BlockSize" type="int" value="5"/>
+        
+
+        
+    </node>
+
+    <node  pkg="rviz" type="rviz" name="stereo_vis" required="true" args="-d $(find stereo)/rviz/show_enhance.rviz"/>
+</launch>

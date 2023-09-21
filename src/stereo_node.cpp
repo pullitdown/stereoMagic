@@ -6,14 +6,14 @@
 #include <sensor_msgs/Image.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
-#include "opencv2/calib3d.hpp"
-#include "opencv2/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/core/utility.hpp"
-#include "opencv2/ximgproc/disparity_filter.hpp"
+#include <opencv2/core/core.hpp> // 替换 #include <opencv/cv.h>
+#include <opencv2/highgui/highgui.hpp> // 替换 #include <opencv/highgui.h>
+#include <opencv2/calib3d/calib3d.hpp> // 替换 #include "opencv2/calib3d.hpp"
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/core/utility.hpp>
+#include <opencv2/ximgproc/disparity_filter.hpp>
 #include <iostream>
 #include <string>
 #include <math.h>
@@ -45,6 +45,7 @@ ros::Publisher pcpub;
 
 //parameters for stereo matching and filtering
 double vis_mult = 5.0;
+int BLockSizr;
 int wsize = 13;
 int max_disp = 16 * 10;
 double lambda = 10000.0;
@@ -58,6 +59,11 @@ Mat filtered_disp;
 Rect ROI ;
 Ptr<DisparityWLSFilter> wls_filter;
 Mat filtered_disp_vis;
+int sgbm_type;
+int p1_num,p2_num,prefilter_num;
+int Disp12MaxDiff,MinDisparity,SpeckleWindowSize,SpeckleRange,PreFilterCap,UniquenessRatio;
+
+
 
 
 void compute_stereo(Mat& imL, Mat& imR)
@@ -75,10 +81,16 @@ void compute_stereo(Mat& imL, Mat& imR)
 
   //compute disparity
   Ptr<StereoSGBM> left_matcher  = StereoSGBM::create(0,max_disp,wsize);
-  left_matcher->setP1(24*wsize*wsize);
-  left_matcher->setP2(96*wsize*wsize);
-  left_matcher->setPreFilterCap(63);
-  left_matcher->setMode(StereoSGBM::MODE_SGBM_3WAY);
+  left_matcher->setBlockSize(BlockSize)
+  left_matcher->setP1(p1_num*wsize*wsize);
+  left_matcher->setP2(p2_num*wsize*wsize);
+  left_matcher->setDisp12MaxDiff(Disp12MaxDiff);
+  left_matcher->setMinDisparity(MinDisparity);
+  left_matcher->setSpeckleWindowSize(SpeckleWindowSize);
+  left_matcher->setSpeckleRange(SpeckleRange);
+  left_matcher->setPreFilterCap(PreFilterCap);
+  left_matcher->setUniquenessRatio(UniquenessRatio);
+  left_matcher->setMode(static_cast<decltype(StereoSGBM::MODE_SGBM_3WAY)>(sgbm_type) );
   wls_filter = createDisparityWLSFilter(left_matcher);
   Ptr<StereoMatcher> right_matcher = createRightMatcher(left_matcher);
 
@@ -99,23 +111,36 @@ void compute_stereo(Mat& imL, Mat& imR)
   //PointCloud Generation======================================================
 
   // Q matrix (guess until we can do the correct calib process)
-  double w = imR.cols;
-  double  h = imR.rows;
-  double f = 843.947693;
-  double cx = 508.062911;
-  double cx1 = 526.242457;
-  double cy = 385.070250;
-  double Tx = -120.00;
-  Mat Q = Mat(4,4, CV_64F, double(0));
-  Q.at<double>(0,0) = 1.0;
-  Q.at<double>(0,3) = -cx;
-  Q.at<double>(1,1) = 1.0;
-  Q.at<double>(1,3) = -cy;
-  Q.at<double>(2,3) = f;
-  Q.at<double>(3,2) = -1.0/ Tx;
-  Q.at<double>(3,3) = ( cx - cx1)/ Tx;
+  // double w = imR.cols;
+  // double  h = imR.rows;
+  // double f = 843.947693;
+  // double cx = 508.062911;
+  // double cx1 = 526.242457;
+  // double cy = 385.070250;
+  // double Tx = -120.00;
+  // double w = imR.cols;
+  // double  h = imR.rows;
+  // double f = 382.34175236928627;
+  // double cx = 321.7242056112083;
+  // double cx1 = 322.3064389150983;
+  // double cy = 236.24691075834372;
+  // double Tx = -19.29692482;
+  // Mat Q = Mat(4,4, CV_64F, double(0));
+  // Q.at<double>(0,0) = 1.0;
+  // Q.at<double>(0,3) = -cx;
+  // Q.at<double>(1,1) = 1.0;
+  // Q.at<double>(1,3) = -cy;
+  // Q.at<double>(2,3) = f;
+  // Q.at<double>(3,2) = -1.0/ Tx;
+  // Q.at<double>(3,3) = ( cx - cx1)/ Tx;
 
-
+  double Tx=-19.42830883756359;
+  cv::Mat Q = (cv::Mat_<double>(4,4) << -19.42830883756359, 0, 0, 6251.133074507617,
+                                     0, -19.42830883756359, 0, 4592.437057166097,
+                                     0, 0, 0, -7472.829104043432,
+                                     0, 0, -1, 11.40046179682074/384.6361083984375);
+  Q=Q/Tx;
+  std::cout<<Q<<std::endl;
 
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud(new  pcl::PointCloud<pcl::PointXYZRGB>());
   Mat xyz;
@@ -165,32 +190,32 @@ void compute_stereo(Mat& imL, Mat& imR)
 
 
   // voxel grid filter
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered(new  pcl::PointCloud<pcl::PointXYZRGB>());
-  pcl::VoxelGrid<pcl::PointXYZRGB> sor;
-  sor.setInputCloud (pointcloud);
-  sor.setLeafSize (0.01, 0.01, 0.01);
-  sor.filter (*cloud_filtered);
+  // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered(new  pcl::PointCloud<pcl::PointXYZRGB>());
+  // pcl::VoxelGrid<pcl::PointXYZRGB> sor;
+  // sor.setInputCloud (pointcloud);
+  // sor.setLeafSize (0.01, 0.01, 0.01);
+  // sor.filter (*cloud_filtered);
 
 
-  //outliner removal filter
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered2(new  pcl::PointCloud<pcl::PointXYZRGB>());
-  pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor1;
-  sor1.setInputCloud (cloud_filtered);
-  sor1.setMeanK (100);
-  sor1.setStddevMulThresh (0.001);
-  sor1.filter (*cloud_filtered2);
-  if(enableVisualization)
-  {
-    pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
-    cv::imshow(OPENCV_WINDOW, filtered_disp_vis);
-    viewer.showCloud(cloud_filtered2);
-    cv::waitKey(3);
-  }
+  // //outliner removal filter
+  // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered2(new  pcl::PointCloud<pcl::PointXYZRGB>());
+  // pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor1;
+  // sor1.setInputCloud (cloud_filtered);
+  // sor1.setMeanK (100);
+  // sor1.setStddevMulThresh (0.001);
+  // sor1.filter (*cloud_filtered2);
+  // if(enableVisualization)
+  // {
+  //   pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
+  //   cv::imshow(OPENCV_WINDOW, filtered_disp_vis);
+  //   viewer.showCloud(cloud_filtered2);
+  //   cv::waitKey(3);
+  // }
 
    // Convert to ROS data type
    sensor_msgs::PointCloud2 pointcloud_msg;
-   pcl:: toROSMsg(*cloud_filtered2,pointcloud_msg);
-   pointcloud_msg.header.frame_id = "stereo_frame";
+   pcl:: toROSMsg(*pointcloud,pointcloud_msg);
+   pointcloud_msg.header.frame_id = "cam_pos";
 
    // Publishes pointcloud message
    pcpub.publish(pointcloud_msg);
@@ -241,13 +266,31 @@ int main(int argc, char **argv) {
   image_transport::ImageTransport it(nh);
 
   //pointcloud publisher
-  pcpub = nh.advertise<sensor_msgs::PointCloud2> ("/camera/depth/pointcloud", 1);
-  // depth image publisher
-  pub = it.advertise("/camera/depth/image", 1);
 
+
+  std::string left_topic, right_topic,pc_topic,depth_topic;
+  nh.param<std::string>("left_topic", left_topic, "/infra1/image_rect_raw");
+  nh.param<std::string>("right_topic", right_topic, "/infra2/image_rect_raw");
+  nh.param<std::string>("pc_topic", pc_topic, "/camera/depth/points");
+  nh.param<std::string>("depth_topic", depth_topic, "/camera/depth/image");
+  nh.param<int>("p1_num",p1_num,24);
+  nh.param<int>("p2_num",p2_num,96);
+  nh.param<int>("sgbm_type",sgbm_type,0) ;
+  nh.param<int>("prefilter_num",prefilter_num,63);
+  nh.param<int>("Disp12MaxDiff",Disp12MaxDiff,20);
+  nh.param<int>("MinDisparity",MinDisparity,5);
+  nh.param<int>("SpeckleWindowSize",SpeckleWindowSize,100);
+  nh.param<int>("SpeckleRange",SpeckleRange,1);
+  nh.param<int>("PreFilterCap",PreFilterCap,63);
+  nh.param<int>("UniquenessRatio",UniquenessRatio,10);
+  
+  
+  pcpub = nh.advertise<sensor_msgs::PointCloud2> (pc_topic, 1);
+  // depth image publisher
+  pub = it.advertise(depth_topic, 1);
   //left and right rectified images subscriber
-	message_filters::Subscriber<Image> left_sub(nh, "camera/left/rect", 1);
-	message_filters::Subscriber<Image> right_sub(nh, "camera/right/rect", 1);
+	message_filters::Subscriber<Image> left_sub(nh, left_topic, 1);
+	message_filters::Subscriber<Image> right_sub(nh, right_topic, 1);
 
   //time syncronizer to publish 2 images in the same callback function
 	TimeSynchronizer<Image, Image> sync(left_sub, right_sub, 1);

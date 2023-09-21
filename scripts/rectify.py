@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/obc/miniconda3/envs/yolov5/bin/python
 import roslib
 import sys
 import rospy
@@ -13,22 +13,22 @@ import time
 import scipy
 
 #change it to your own global path to workspace
-GLOBAL_PATH = '/home/rachillesf/catkin_ws'
+GLOBAL_PATH = '/media/world/lively_ws'
 
 class Rectify:
 
   def __init__(self):
-    self.left_pub = rospy.Publisher("/camera/left/rect",Image,queue_size=1)
-    self.right_pub = rospy.Publisher("/camera/right/rect",Image,queue_size=1)
+    self.left_pub = rospy.Publisher("/camera/infra1/image_rect",Image,queue_size=1)
+    self.right_pub = rospy.Publisher("/camera/infra2/image_rect",Image,queue_size=1)
     self.bridge = CvBridge()
-    self.rimage_sub = message_filters.Subscriber("/camera/right/image_raw",Image)
-    self.limage_sub = message_filters.Subscriber("/camera/left/image_raw",Image)
+    self.rimage_sub = message_filters.Subscriber("/camera/infra2/image_rect_raw",Image)
+    self.limage_sub = message_filters.Subscriber("/camera/infra1/image_rect_raw",Image)
     self.ts = message_filters.TimeSynchronizer([self.limage_sub, self.rimage_sub], 1).registerCallback(self.callback)
-    self.dist = np.load(GLOBAL_PATH + '/src/stereo/params/dist.npy')
-    self.mtx = np.array(np.load(GLOBAL_PATH + '/src/stereo/params/mtx.npy'))
-    self.ret = [np.load(GLOBAL_PATH + '/src/stereo/params/ret.npy')]
-    self.rvecs = np.load(GLOBAL_PATH + '/src/stereo/params/rvecs.npy')
-    self.tvecs = np.load(GLOBAL_PATH + '/src/stereo/params/tvecs.npy')
+    self.dist = np.load(GLOBAL_PATH + '/src/stereoMagic/params/dist.npy')
+    self.mtx = np.array(np.load(GLOBAL_PATH + '/src/stereoMagic/params/mtx.npy'))
+    self.ret = [np.load(GLOBAL_PATH + '/src/stereoMagic/params/ret.npy')]
+    self.rvecs = np.load(GLOBAL_PATH + '/src/stereoMagic/params/rvecs.npy')
+    self.tvecs = np.load(GLOBAL_PATH + '/src/stereoMagic/params/tvecs.npy')
     print("Rectify Node Initialized")
 
 

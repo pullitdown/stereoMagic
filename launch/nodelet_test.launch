@@ -1,0 +1,19 @@
+<launch>
+  <arg name="manager_name" default="nodelet_manager" />
+
+  <node pkg="nodelet" type="nodelet" name="$(arg manager_name)" args="manager" output="screen" />
+
+  <node pkg="nodelet" type="nodelet" name="stereo"  args="load magicStereo/magic_stereo_nodelet $(arg manager_name)" output="screen">
+    <param name="left_image_topic"  value="/camera/infra1/image_rect_raw"  type="str"/>
+    <param name="right_image_topic"  value="/camera/infra2/image_rect_raw"  type="str"/>
+  </node>
+
+<!--   
+  <node pkg="nodelet" type="nodelet" name="stereo_test"  args="load magicStereo/magic_stereo_nodelet_test $(arg manager_name)" output="screen">
+    <param name="left_image_topic"  value="/camera/infra1/image_rect_raw"  type="str"/>
+    <param name="right_image_topic"  value="/camera/infra2/image_rect_raw"  type="str"/>
+  </node> -->
+
+  <!-- RVIZ + SVO GUI -->
+  <node name="vis" pkg="rviz" type="rviz" args="" />
+</launch>
