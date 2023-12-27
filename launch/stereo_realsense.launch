@@ -3,7 +3,7 @@
     <!-- Arguments: input stereo namespace and output elas namespace -->
 
 
-    <include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
+    <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch"/> -->
 
 
     <!-- <node pkg="sci_ros" type="sci_node.py" name="sci_node">
@@ -16,14 +16,14 @@
      -->
     <node pkg="stereo" type="stereo_node_" name="stereo_node_" >
         
-        <param name="left_topic"  type="string"  value="/infra1/image_rect_raw" />
-        <param name="right_topic"  type="string"  value="/infra2/image_rect_raw"/>
+        <param name="left_topic"  type="string"  value="/camera/infra1/image_rect_raw" />
+        <param name="right_topic"  type="string"  value="/camera/infra2/image_rect_raw"/>
 
         <param name="sgbm_type" type="int" value="3" />
         <param name="p1_num" type="int" value="24" />
         <param name="p2_num" type="int" value="96" />
         <param name="Disp12MaxDiff" type="int" value="50"/>
-        <param name="MinDisparity" type="int" value="4"/>
+        <param name="MinDisparity" type="int" value="1"/>
         <param name="SpeckleWindowSize" type="int" value="23"/>
         <param name="SpeckleRange" type="int" value="45"/>
         <param name="PreFilterCap" type="int" value="63"/>

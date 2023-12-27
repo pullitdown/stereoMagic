@@ -118,29 +118,29 @@ void compute_stereo(Mat& imL, Mat& imR)
   // double cx1 = 526.242457;
   // double cy = 385.070250;
   // double Tx = -120.00;
-  // double w = imR.cols;
-  // double  h = imR.rows;
-  // double f = 382.34175236928627;
-  // double cx = 321.7242056112083;
-  // double cx1 = 322.3064389150983;
-  // double cy = 236.24691075834372;
-  // double Tx = -19.29692482;
-  // Mat Q = Mat(4,4, CV_64F, double(0));
-  // Q.at<double>(0,0) = 1.0;
-  // Q.at<double>(0,3) = -cx;
-  // Q.at<double>(1,1) = 1.0;
-  // Q.at<double>(1,3) = -cy;
-  // Q.at<double>(2,3) = f;
-  // Q.at<double>(3,2) = -1.0/ Tx;
-  // Q.at<double>(3,3) = ( cx - cx1)/ Tx;
+  double w = imR.cols;
+  double  h = imR.rows;
+  double f = 382.34175236928627;
+  double cx = 321.7242056112083;
+  double cx1 = 322.3064389150983;
+  double cy = 236.24691075834372;
+  double Tx = -19.29692482;
+  Mat Q = Mat(4,4, CV_64F, double(0));
+  Q.at<double>(0,0) = 1.0;
+  Q.at<double>(0,3) = -cx;
+  Q.at<double>(1,1) = 1.0;
+  Q.at<double>(1,3) = -cy;
+  Q.at<double>(2,3) = f;
+  Q.at<double>(3,2) = -1.0/ Tx;
+  Q.at<double>(3,3) = ( cx - cx1)/ Tx;
 
-  double Tx=-19.42830883756359;
-  cv::Mat Q = (cv::Mat_<double>(4,4) << -19.42830883756359, 0, 0, 6251.133074507617,
-                                     0, -19.42830883756359, 0, 4592.437057166097,
-                                     0, 0, 0, -7472.829104043432,
-                                     0, 0, -1, 11.40046179682074/384.6361083984375);
-  Q=Q/Tx;
-  std::cout<<Q<<std::endl;
+  // double Tx=-19.42830883756359;
+  // cv::Mat Q = (cv::Mat_<double>(4,4) << -19.42830883756359, 0, 0, 6251.133074507617,
+  //                                    0, -19.42830883756359, 0, 4592.437057166097,
+  //                                    0, 0, 0, -7472.829104043432,
+  //                                    0, 0, -1, 11.40046179682074/384.6361083984375);
+  // Q=Q/Tx;
+  // std::cout<<Q<<std::endl;
 
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud(new  pcl::PointCloud<pcl::PointXYZRGB>());
   Mat xyz;

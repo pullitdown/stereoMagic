@@ -18,6 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   pcl_conversions
   dynamic_reconfigure
+  image_geometry
+
 )
 
 
@@ -40,6 +42,7 @@ catkin_package()
 
 find_package(PCL  REQUIRED)
 find_package(OpenCV  REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -86,8 +89,10 @@ endforeach()
 # endforeach()
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(stereo_node_ ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS}
+target_link_libraries(stereo_node_ ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS} yaml-cpp
 )
+
+target_compile_options(stereo_node_ PRIVATE -g)
 
 # target_link_libraries(calib_camera ${catkin_LIBRARIES} ${OpenCV_LIBS})
 # target_link_libraries(stereo_tf_broadcaster ${catkin_LIBRARIES} ${OpenCV_LIBS})
